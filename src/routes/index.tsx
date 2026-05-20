@@ -482,7 +482,7 @@ function Index() {
 
         {/* Audit log */}
         <Section
-          eyebrow="03"
+          eyebrow="04"
           title="Audit log"
           description="Every decision Sage proposed and how it was resolved."
         >
