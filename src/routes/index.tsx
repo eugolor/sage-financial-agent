@@ -582,9 +582,87 @@ function Index() {
         </Section>
       </main>
 
-      <footer className="border-t border-border py-8 text-center text-xs text-muted-foreground">
+      <footer className="border-t border-border py-8 pb-28 text-center text-xs text-muted-foreground sm:pb-28">
         Sage · every action explained, every decision logged.
       </footer>
+
+      {/* Ask Sage floating chat */}
+      <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 px-4 pb-4 sm:px-6 sm:pb-6">
+        <div className="pointer-events-auto mx-auto max-w-3xl space-y-3">
+          {advice && <AdviceCard advice={advice} onDismiss={() => setAdvice(null)} />}
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              askSage();
+            }}
+            className="flex items-center gap-3 rounded-2xl border border-border bg-card/95 px-3 py-2 shadow-lg backdrop-blur supports-[backdrop-filter]:bg-card/80"
+          >
+            <div className="flex shrink-0 items-center gap-2 pl-1">
+              <div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary text-primary-foreground">
+                <span className="font-display text-sm leading-none">S</span>
+              </div>
+              <span className="hidden text-sm font-medium text-foreground sm:inline">Ask Sage</span>
+            </div>
+            <input
+              type="text"
+              value={askInput}
+              onChange={(e) => setAskInput(e.target.value)}
+              placeholder="e.g. Should I buy a $800 laptop right now?"
+              className="flex-1 bg-transparent px-2 py-1.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
+            />
+            <button
+              type="submit"
+              disabled={asking || !askInput.trim()}
+              className="inline-flex h-9 shrink-0 items-center justify-center gap-2 rounded-xl bg-primary px-4 text-sm font-medium text-primary-foreground transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {asking && (
+                <span className="inline-block h-3.5 w-3.5 animate-spin rounded-full border-2 border-primary-foreground/40 border-t-primary-foreground" />
+              )}
+              Send
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const verdictStyles: Record<string, string> = {
+  "go ahead": "bg-success text-success-foreground",
+  "hold off": "bg-danger text-danger-foreground",
+  "needs more info": "bg-secondary text-secondary-foreground",
+};
+
+function AdviceCard({
+  advice,
+  onDismiss,
+}: {
+  advice: { answer: string; reasoning: string; confidence: number; verdict: string };
+  onDismiss: () => void;
+}) {
+  const verdictKey = verdictStyles[advice.verdict] ? advice.verdict : "needs more info";
+  return (
+    <div className="rounded-2xl border border-border bg-card p-5 shadow-xl">
+      <div className="flex items-start justify-between gap-3">
+        <span
+          className={`inline-flex items-center rounded-full px-3 py-1 text-sm font-semibold uppercase tracking-wide ${verdictStyles[verdictKey]}`}
+        >
+          {verdictKey}
+        </span>
+        <button
+          onClick={onDismiss}
+          aria-label="Dismiss"
+          className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-border bg-secondary text-muted-foreground transition hover:bg-accent hover:text-foreground"
+        >
+          ×
+        </button>
+      </div>
+      <p className="mt-3 text-base leading-relaxed text-foreground">{advice.answer}</p>
+      <div className="mt-3 rounded-lg bg-muted p-3">
+        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Reasoning</p>
+        <p className="mt-1 text-sm text-foreground">{advice.reasoning}</p>
+      </div>
+      <div className="mt-3 text-xs text-muted-foreground">{advice.confidence}% confident</div>
     </div>
   );
 }
