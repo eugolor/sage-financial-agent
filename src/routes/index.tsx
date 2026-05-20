@@ -1,5 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
+import { sageAgent } from "@/lib/sage-agent.functions";
 import { initialInsights, initialPending, initialAudit } from "@/mockData";
 
 export const Route = createFileRoute("/")({
@@ -65,6 +67,63 @@ function Index() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editAmount, setEditAmount] = useState<string>("");
   const [editNote, setEditNote] = useState<string>("");
+  const [loadingInsight, setLoadingInsight] = useState(true);
+  const [loadingAction, setLoadingAction] = useState(true);
+
+  const callSage = useServerFn(sageAgent);
+
+  useEffect(() => {
+    const ctx = {
+      accountBalance: 2100,
+      rules: [
+        "Pay rent of $1,500 on the 1st if balance > $2,000",
+        "Move 10% of paycheck to savings on payday + 2",
+        "Pay full statement balance if buffer ≥ $500",
+      ],
+      transactions: [
+        { date: "2026-05-28", merchant: "Whole Foods", amount: -82 },
+        { date: "2026-05-27", merchant: "Payday Deposit", amount: 2400 },
+        { date: "2026-05-25", merchant: "CloudSync", amount: -14.99 },
+        { date: "2026-05-22", merchant: "Uber Eats", amount: -54 },
+        { date: "2026-05-20", merchant: "ConEd", amount: -85 },
+      ],
+      todayDate: new Date().toISOString().slice(0, 10),
+    };
+
+    callSage({ data: { type: "action", ...ctx } })
+      .then((r) => {
+        if (!r.action) return;
+        setPending((p) => [
+          {
+            id: `live-p-${Date.now()}`,
+            action: r.action,
+            risk: (r.risk_level as "low" | "medium" | "high") || "medium",
+            confidence: r.confidence || 0,
+            reasoning: r.reasoning,
+            rule: r.rule_matched,
+          },
+          ...p,
+        ]);
+      })
+      .catch((e) => console.error("Sage action error:", e))
+      .finally(() => setLoadingAction(false));
+
+    callSage({ data: { type: "insight", ...ctx } })
+      .then((r) => {
+        if (!r.observation) return;
+        setInsights((xs) => [
+          {
+            id: `live-i-${Date.now()}`,
+            observation: r.observation,
+            recommendation: r.recommendation,
+            confidence: r.confidence || 0,
+          },
+          ...xs,
+        ]);
+      })
+      .catch((e) => console.error("Sage insight error:", e))
+      .finally(() => setLoadingInsight(false));
+  }, [callSage]);
 
   const totalDecisions = useMemo(() => audit.length, [audit]);
 
@@ -161,6 +220,7 @@ function Index() {
           title="Insights"
           description="Proactive observations from your recent activity."
         >
+          {loadingInsight && <LoadingBanner label="Generating a fresh insight with Sage…" />}
           {insights.length === 0 ? (
             <EmptyState message="All caught up. Sage will surface new insights as patterns emerge." />
           ) : (
@@ -198,6 +258,7 @@ function Index() {
           title="Pending actions"
           description="Each action shows the rule that triggered it, Sage's reasoning, and a confidence score."
         >
+          {loadingAction && <LoadingBanner label="Sage is reviewing your account…" />}
           {pending.length === 0 ? (
             <EmptyState message="No pending actions. Sage is monitoring." />
           ) : (
@@ -435,6 +496,15 @@ function EmptyState({ message }: { message: string }) {
   return (
     <div className="rounded-xl border border-dashed border-border bg-card p-8 text-center text-sm text-muted-foreground">
       {message}
+    </div>
+  );
+}
+
+function LoadingBanner({ label }: { label: string }) {
+  return (
+    <div className="mb-4 flex items-center gap-3 rounded-lg border border-border bg-muted/50 px-4 py-3 text-sm text-muted-foreground">
+      <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-foreground/30 border-t-foreground" />
+      {label}
     </div>
   );
 }
