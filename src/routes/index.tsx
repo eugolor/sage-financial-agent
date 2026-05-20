@@ -220,6 +220,7 @@ function Index() {
           title="Insights"
           description="Proactive observations from your recent activity."
         >
+          {loadingInsight && <LoadingBanner label="Generating a fresh insight with Sage…" />}
           {insights.length === 0 ? (
             <EmptyState message="All caught up. Sage will surface new insights as patterns emerge." />
           ) : (
