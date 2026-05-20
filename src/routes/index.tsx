@@ -297,9 +297,62 @@ function Index() {
           )}
         </Section>
 
-        {/* Pending actions */}
+        {/* Rules */}
         <Section
           eyebrow="02"
+          title="My Rules"
+          description="Plain-English rules Sage uses to decide which actions to propose."
+        >
+          <div className="rounded-xl border border-border bg-card p-5 shadow-sm sm:p-6">
+            {rules.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No active rules yet. Add one below.</p>
+            ) : (
+              <ul className="divide-y divide-border">
+                {rules.map((r, idx) => (
+                  <li key={`${idx}-${r}`} className="flex items-center justify-between gap-3 py-3 first:pt-0 last:pb-0">
+                    <span className="text-sm text-foreground">{r}</span>
+                    <button
+                      onClick={() => removeRule(idx)}
+                      aria-label="Delete rule"
+                      className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-border bg-secondary text-muted-foreground transition hover:bg-accent hover:text-foreground"
+                    >
+                      ×
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <div className="mt-5 flex flex-col gap-2 border-t border-border pt-4 sm:flex-row">
+              <input
+                type="text"
+                value={ruleInput}
+                onChange={(e) => setRuleInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    addRule();
+                  }
+                }}
+                placeholder="Describe a rule in plain English e.g. 'Alert me if I spend more than $200 on food in a week'"
+                className="flex-1 rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+              />
+              <button
+                onClick={addRule}
+                disabled={addingRule || !ruleInput.trim()}
+                className="inline-flex h-9 items-center justify-center gap-2 rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {addingRule && (
+                  <span className="inline-block h-3.5 w-3.5 animate-spin rounded-full border-2 border-primary-foreground/40 border-t-primary-foreground" />
+                )}
+                Add Rule
+              </button>
+            </div>
+          </div>
+        </Section>
+
+        {/* Pending actions */}
+        <Section
+          eyebrow="03"
           title="Pending actions"
           description="Each action shows the rule that triggered it, Sage's reasoning, and a confidence score."
         >
