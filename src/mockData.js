@@ -5,12 +5,6 @@ export const initialInsights = [
     recommendation: "Flag restaurant charges over $50 for review before they post.",
     confidence: 87,
   },
-  {
-    id: "i2",
-    observation: "Your savings transfers have been inconsistent — only 2 of the last 6 weeks.",
-    recommendation: "Auto-transfer $150 every Friday to your high-yield savings.",
-    confidence: 92,
-  },
 ];
 
 export const initialPending = [
