@@ -5,18 +5,6 @@ export const initialInsights = [
     recommendation: "Flag restaurant charges over $50 for review before they post.",
     confidence: 87,
   },
-  {
-    id: "i2",
-    observation: "Your savings transfers have been inconsistent — only 2 of the last 6 weeks.",
-    recommendation: "Auto-transfer $150 every Friday to your high-yield savings.",
-    confidence: 92,
-  },
-  {
-    id: "i3",
-    observation: "A recurring $14.99 charge from 'CloudSync' hasn't been used in 60 days.",
-    recommendation: "Cancel subscription and reclaim $180/year.",
-    confidence: 78,
-  },
 ];
 
 export const initialPending = [

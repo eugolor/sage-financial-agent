@@ -24,6 +24,8 @@ Return this exact JSON:
 
 const INSIGHT_PROMPT = `Given the transaction history provided, identify the single most important spending insight for this user.
 
+Keep observation to maximum 1 sentence (under 20 words). Keep recommendation to maximum 1 sentence (under 20 words). Be specific but extremely concise.
+
 Return this exact JSON:
 {
   "observation": "what you noticed",
