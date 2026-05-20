@@ -21,7 +21,13 @@ declare module "@/mockData" {
     confidence: number;
     summary: string;
   }
+  export interface Transaction {
+    date: string;
+    merchant: string;
+    amount: number;
+  }
   export const initialInsights: Insight[];
   export const initialPending: PendingAction[];
   export const initialAudit: AuditEntry[];
+  export const initialTransactions: Transaction[];
 }
