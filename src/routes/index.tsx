@@ -258,6 +258,7 @@ function Index() {
           title="Pending actions"
           description="Each action shows the rule that triggered it, Sage's reasoning, and a confidence score."
         >
+          {loadingAction && <LoadingBanner label="Sage is reviewing your account…" />}
           {pending.length === 0 ? (
             <EmptyState message="No pending actions. Sage is monitoring." />
           ) : (
