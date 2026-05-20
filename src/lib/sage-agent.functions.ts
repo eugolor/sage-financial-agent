@@ -161,5 +161,7 @@ Context:
       observation: typeof parsed.observation === "string" ? parsed.observation : "",
       recommendation: typeof parsed.recommendation === "string" ? parsed.recommendation : "",
       rule: typeof parsed.rule === "string" ? parsed.rule : "",
+      answer: typeof parsed.answer === "string" ? parsed.answer : "",
+      verdict: typeof parsed.verdict === "string" ? parsed.verdict : "",
     };
   });
