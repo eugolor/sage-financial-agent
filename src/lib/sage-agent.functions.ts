@@ -48,8 +48,13 @@ function validate(input: unknown): SageRequest {
 export const sageAgent = createServerFn({ method: "POST" })
   .inputValidator(validate)
   .handler(async ({ data }) => {
+    console.log("[sage-agent] called", { type: data.type, todayDate: data.todayDate });
+
     const apiKey = process.env.ANTHROPIC_API_KEY;
-    if (!apiKey) throw new Error("ANTHROPIC_API_KEY is not configured");
+    if (!apiKey) {
+      console.error("[sage-agent] ANTHROPIC_API_KEY is not configured");
+      throw new Error("ANTHROPIC_API_KEY is not configured");
+    }
 
     const userPrompt = `${data.type === "action" ? ACTION_PROMPT : INSIGHT_PROMPT}
 
@@ -59,25 +64,39 @@ Context:
 - Rules: ${JSON.stringify(data.rules)}
 - Transactions: ${JSON.stringify(data.transactions)}`;
 
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": apiKey,
-        "anthropic-version": "2023-06-01",
-      },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
-        max_tokens: 512,
-        system: SYSTEM_PROMPT,
-        messages: [{ role: "user", content: userPrompt }],
-      }),
-    });
+    let res: Response;
+    try {
+      res = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": apiKey,
+          "anthropic-version": "2023-06-01",
+        },
+        body: JSON.stringify({
+          model: "claude-sonnet-4-20250514",
+          max_tokens: 512,
+          system: SYSTEM_PROMPT,
+          messages: [{ role: "user", content: userPrompt }],
+        }),
+      });
+    } catch (err) {
+      console.error("[sage-agent] fetch to Anthropic threw", { type: data.type, err });
+      throw err;
+    }
 
     if (!res.ok) {
       const text = await res.text();
+      console.error("[sage-agent] Claude API call FAILED", {
+        type: data.type,
+        status: res.status,
+        statusText: res.statusText,
+        body: text,
+      });
       throw new Error(`Claude API error ${res.status}: ${text}`);
     }
+
+    console.log("[sage-agent] Claude API call OK", { type: data.type, status: res.status });
 
     const payload = (await res.json()) as {
       content?: Array<{ type: string; text?: string }>;
@@ -90,7 +109,10 @@ Context:
       parsed = JSON.parse(text);
     } catch {
       const match = text.match(/\{[\s\S]*\}/);
-      if (!match) throw new Error("Claude returned non-JSON response");
+      if (!match) {
+        console.error("[sage-agent] Claude returned non-JSON response", { type: data.type, text });
+        throw new Error("Claude returned non-JSON response");
+      }
       parsed = JSON.parse(match[0]);
     }
     return {
