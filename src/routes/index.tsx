@@ -50,10 +50,21 @@ function RiskBadge({ risk }: { risk: Risk }) {
   );
 }
 
+const AMOUNT_RE = /\$([\d,]+(?:\.\d{1,2})?)/;
+const parseAmount = (s: string) => {
+  const m = s.match(AMOUNT_RE);
+  return m ? Number(m[1].replace(/,/g, "")) : 0;
+};
+const formatAmount = (n: number) =>
+  `$${n.toLocaleString("en-US", { maximumFractionDigits: 2 })}`;
+
 function Index() {
   const [insights, setInsights] = useState(initialInsights);
   const [pending, setPending] = useState(initialPending);
   const [audit, setAudit] = useState(initialAudit);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editAmount, setEditAmount] = useState<string>("");
+  const [editNote, setEditNote] = useState<string>("");
 
   const totalDecisions = useMemo(() => audit.length, [audit]);
 
@@ -63,21 +74,61 @@ function Index() {
     return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
   };
 
+  const pushAudit = (entry: {
+    action: string;
+    decision: Decision;
+    confidence: number;
+    summary: string;
+  }) => {
+    setAudit((a) => [
+      { id: `a-${Date.now()}`, date: now(), ...entry },
+      ...a,
+    ]);
+  };
+
   const resolve = (id: string, decision: Decision) => {
     const card = pending.find((p) => p.id === id);
     if (!card) return;
     setPending((p) => p.filter((c) => c.id !== id));
-    setAudit((a) => [
-      {
-        id: `a-${Date.now()}`,
-        date: now(),
-        action: card.action,
-        decision,
-        confidence: card.confidence,
-        summary: card.reasoning,
-      },
-      ...a,
-    ]);
+    pushAudit({
+      action: card.action,
+      decision,
+      confidence: card.confidence,
+      summary: card.reasoning,
+    });
+  };
+
+  const startEdit = (id: string) => {
+    const card = pending.find((p) => p.id === id);
+    if (!card) return;
+    setEditingId(id);
+    setEditAmount(String(parseAmount(card.action)));
+    setEditNote("");
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+    setEditAmount("");
+    setEditNote("");
+  };
+
+  const confirmEdit = (id: string) => {
+    const card = pending.find((p) => p.id === id);
+    if (!card) return;
+    const original = parseAmount(card.action);
+    const next = Number(editAmount);
+    const newAction = card.action.replace(AMOUNT_RE, formatAmount(isNaN(next) ? original : next));
+    const summary = `User changed amount from ${formatAmount(original)} to ${formatAmount(
+      isNaN(next) ? original : next,
+    )}.${editNote.trim() ? ` Note: ${editNote.trim()}` : ""}`;
+    setPending((p) => p.filter((c) => c.id !== id));
+    pushAudit({
+      action: newAction,
+      decision: "Edited",
+      confidence: card.confidence,
+      summary,
+    });
+    cancelEdit();
   };
 
   const applyInsight = (id: string) => setInsights((xs) => xs.filter((i) => i.id !== id));
