@@ -69,8 +69,36 @@ function Index() {
   const [editNote, setEditNote] = useState<string>("");
   const [loadingInsight, setLoadingInsight] = useState(true);
   const [loadingAction, setLoadingAction] = useState(true);
+  const [rules, setRules] = useState<string[]>([
+    "Pay rent of $1,500 on the 1st if balance > $2,000",
+    "Move 10% of paycheck to savings on payday + 2",
+    "Flag any transaction over $500 for review",
+  ]);
+  const [ruleInput, setRuleInput] = useState("");
+  const [addingRule, setAddingRule] = useState(false);
 
   const callSage = useServerFn(sageAgent);
+
+  const addRule = () => {
+    const text = ruleInput.trim();
+    if (!text || addingRule) return;
+    setAddingRule(true);
+    callSage({ data: { type: "parse_rule", ruleText: text } })
+      .then((r) => {
+        const structured = r.rule?.trim() || text;
+        setRules((rs) => [...rs, structured]);
+        setRuleInput("");
+      })
+      .catch((e) => {
+        console.error("[Sage] parse_rule FAILED — adding raw text as fallback", e);
+        setRules((rs) => [...rs, text]);
+        setRuleInput("");
+      })
+      .finally(() => setAddingRule(false));
+  };
+
+  const removeRule = (idx: number) =>
+    setRules((rs) => rs.filter((_, i) => i !== idx));
 
   useEffect(() => {
     const ctx = {
