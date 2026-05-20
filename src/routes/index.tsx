@@ -499,3 +499,12 @@ function EmptyState({ message }: { message: string }) {
     </div>
   );
 }
+
+function LoadingBanner({ label }: { label: string }) {
+  return (
+    <div className="mb-4 flex items-center gap-3 rounded-lg border border-border bg-muted/50 px-4 py-3 text-sm text-muted-foreground">
+      <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-foreground/30 border-t-foreground" />
+      {label}
+    </div>
+  );
+}
