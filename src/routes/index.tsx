@@ -50,10 +50,21 @@ function RiskBadge({ risk }: { risk: Risk }) {
   );
 }
 
+const AMOUNT_RE = /\$([\d,]+(?:\.\d{1,2})?)/;
+const parseAmount = (s: string) => {
+  const m = s.match(AMOUNT_RE);
+  return m ? Number(m[1].replace(/,/g, "")) : 0;
+};
+const formatAmount = (n: number) =>
+  `$${n.toLocaleString("en-US", { maximumFractionDigits: 2 })}`;
+
 function Index() {
   const [insights, setInsights] = useState(initialInsights);
   const [pending, setPending] = useState(initialPending);
   const [audit, setAudit] = useState(initialAudit);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editAmount, setEditAmount] = useState<string>("");
+  const [editNote, setEditNote] = useState<string>("");
 
   const totalDecisions = useMemo(() => audit.length, [audit]);
 
@@ -63,21 +74,61 @@ function Index() {
     return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
   };
 
+  const pushAudit = (entry: {
+    action: string;
+    decision: Decision;
+    confidence: number;
+    summary: string;
+  }) => {
+    setAudit((a) => [
+      { id: `a-${Date.now()}`, date: now(), ...entry },
+      ...a,
+    ]);
+  };
+
   const resolve = (id: string, decision: Decision) => {
     const card = pending.find((p) => p.id === id);
     if (!card) return;
     setPending((p) => p.filter((c) => c.id !== id));
-    setAudit((a) => [
-      {
-        id: `a-${Date.now()}`,
-        date: now(),
-        action: card.action,
-        decision,
-        confidence: card.confidence,
-        summary: card.reasoning,
-      },
-      ...a,
-    ]);
+    pushAudit({
+      action: card.action,
+      decision,
+      confidence: card.confidence,
+      summary: card.reasoning,
+    });
+  };
+
+  const startEdit = (id: string) => {
+    const card = pending.find((p) => p.id === id);
+    if (!card) return;
+    setEditingId(id);
+    setEditAmount(String(parseAmount(card.action)));
+    setEditNote("");
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+    setEditAmount("");
+    setEditNote("");
+  };
+
+  const confirmEdit = (id: string) => {
+    const card = pending.find((p) => p.id === id);
+    if (!card) return;
+    const original = parseAmount(card.action);
+    const next = Number(editAmount);
+    const newAction = card.action.replace(AMOUNT_RE, formatAmount(isNaN(next) ? original : next));
+    const summary = `User changed amount from ${formatAmount(original)} to ${formatAmount(
+      isNaN(next) ? original : next,
+    )}.${editNote.trim() ? ` Note: ${editNote.trim()}` : ""}`;
+    setPending((p) => p.filter((c) => c.id !== id));
+    pushAudit({
+      action: newAction,
+      decision: "Edited",
+      confidence: card.confidence,
+      summary,
+    });
+    cancelEdit();
   };
 
   const applyInsight = (id: string) => setInsights((xs) => xs.filter((i) => i.id !== id));
@@ -151,66 +202,121 @@ function Index() {
             <EmptyState message="No pending actions. Sage is monitoring." />
           ) : (
             <div className="space-y-4">
-              {pending.map((p) => (
-                <article
-                  key={p.id}
-                  className="rounded-xl border border-border bg-card p-5 shadow-sm sm:p-6"
-                >
-                  <div className="flex flex-wrap items-start justify-between gap-3">
-                    <div className="space-y-2">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <RiskBadge risk={p.risk as Risk} />
-                        <ConfidenceBadge value={p.confidence} />
-                      </div>
-                      <h3 className="font-display text-xl leading-tight text-foreground">
-                        {p.action}
-                      </h3>
-                    </div>
-                  </div>
-
-                  <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_auto]">
-                    <div className="space-y-3">
-                      <div>
-                        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                          Reasoning
-                        </p>
-                        <p className="mt-1 text-sm leading-relaxed text-foreground">
-                          {p.reasoning}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                          Rule matched
-                        </p>
-                        <p className="mt-1 inline-block rounded-md border border-border bg-muted px-2 py-1 font-mono text-xs text-foreground">
-                          {p.rule}
-                        </p>
+              {pending.map((p) => {
+                const isEditing = editingId === p.id;
+                return (
+                  <article
+                    key={p.id}
+                    className="rounded-xl border border-border bg-card p-5 shadow-sm sm:p-6"
+                  >
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div className="space-y-2">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <RiskBadge risk={p.risk as Risk} />
+                          <ConfidenceBadge value={p.confidence} />
+                        </div>
+                        <h3 className="font-display text-xl leading-tight text-foreground">
+                          {p.action}
+                        </h3>
                       </div>
                     </div>
-                  </div>
 
-                  <div className="mt-5 flex flex-wrap gap-2 border-t border-border pt-4">
-                    <button
-                      onClick={() => resolve(p.id, "Approved")}
-                      className="inline-flex h-9 items-center justify-center rounded-lg bg-success px-4 text-sm font-medium text-success-foreground transition hover:opacity-90"
-                    >
-                      Approve
-                    </button>
-                    <button
-                      onClick={() => resolve(p.id, "Edited")}
-                      className="inline-flex h-9 items-center justify-center rounded-lg border border-border bg-secondary px-4 text-sm font-medium text-secondary-foreground transition hover:bg-accent"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => resolve(p.id, "Rejected")}
-                      className="inline-flex h-9 items-center justify-center rounded-lg bg-danger px-4 text-sm font-medium text-danger-foreground transition hover:opacity-90"
-                    >
-                      Reject
-                    </button>
-                  </div>
-                </article>
-              ))}
+                    <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_auto]">
+                      <div className="space-y-3">
+                        <div>
+                          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                            Reasoning
+                          </p>
+                          <p className="mt-1 text-sm leading-relaxed text-foreground">
+                            {p.reasoning}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                            Rule matched
+                          </p>
+                          <p className="mt-1 inline-block rounded-md border border-border bg-muted px-2 py-1 font-mono text-xs text-foreground">
+                            {p.rule}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {isEditing && (
+                      <div className="mt-5 space-y-3 rounded-lg border border-border bg-muted/40 p-4">
+                        <div>
+                          <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                            Amount
+                          </label>
+                          <div className="mt-1 flex items-center gap-2">
+                            <span className="text-sm text-muted-foreground">$</span>
+                            <input
+                              type="number"
+                              min="0"
+                              step="0.01"
+                              value={editAmount}
+                              onChange={(e) => setEditAmount(e.target.value)}
+                              className="w-40 rounded-md border border-border bg-background px-3 py-1.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                            Note
+                          </label>
+                          <textarea
+                            value={editNote}
+                            onChange={(e) => setEditNote(e.target.value)}
+                            rows={2}
+                            placeholder="Explain the change..."
+                            className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="mt-5 flex flex-wrap gap-2 border-t border-border pt-4">
+                      {isEditing ? (
+                        <>
+                          <button
+                            onClick={() => confirmEdit(p.id)}
+                            className="inline-flex h-9 items-center justify-center rounded-lg bg-success px-4 text-sm font-medium text-success-foreground transition hover:opacity-90"
+                          >
+                            Confirm Edit
+                          </button>
+                          <button
+                            onClick={cancelEdit}
+                            className="inline-flex h-9 items-center justify-center rounded-lg border border-border bg-secondary px-4 text-sm font-medium text-secondary-foreground transition hover:bg-accent"
+                          >
+                            Cancel
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button
+                            onClick={() => resolve(p.id, "Approved")}
+                            className="inline-flex h-9 items-center justify-center rounded-lg bg-success px-4 text-sm font-medium text-success-foreground transition hover:opacity-90"
+                          >
+                            Approve
+                          </button>
+                          <button
+                            onClick={() => startEdit(p.id)}
+                            className="inline-flex h-9 items-center justify-center rounded-lg border border-border bg-secondary px-4 text-sm font-medium text-secondary-foreground transition hover:bg-accent"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => resolve(p.id, "Rejected")}
+                            className="inline-flex h-9 items-center justify-center rounded-lg bg-danger px-4 text-sm font-medium text-danger-foreground transition hover:opacity-90"
+                          >
+                            Reject
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </article>
+                );
+              })}
             </div>
           )}
         </Section>
