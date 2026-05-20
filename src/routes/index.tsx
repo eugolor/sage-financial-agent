@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { sageAgent } from "@/lib/sage-agent.functions";
-import { initialInsights, initialPending, initialAudit } from "@/mockData";
+import { initialInsights, initialPending, initialAudit, initialTransactions } from "@/mockData";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -140,13 +140,7 @@ function Index() {
       accountBalance: 2100,
       rules,
 
-      transactions: [
-        { date: "2026-05-28", merchant: "Whole Foods", amount: -82 },
-        { date: "2026-05-27", merchant: "Payday Deposit", amount: 2400 },
-        { date: "2026-05-25", merchant: "CloudSync", amount: -14.99 },
-        { date: "2026-05-22", merchant: "Uber Eats", amount: -54 },
-        { date: "2026-05-20", merchant: "ConEd", amount: -85 },
-      ],
+      transactions: initialTransactions,
       todayDate: new Date().toISOString().slice(0, 10),
     };
 
