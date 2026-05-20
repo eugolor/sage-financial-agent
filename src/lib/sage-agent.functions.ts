@@ -1,12 +1,13 @@
 import { createServerFn } from "@tanstack/react-start";
 
 type SageRequest = {
-  type: "action" | "insight" | "parse_rule";
+  type: "action" | "insight" | "parse_rule" | "advice";
   accountBalance: number;
   rules: string[];
   transactions: unknown[];
   todayDate: string;
   ruleText: string;
+  question: string;
 };
 
 const SYSTEM_PROMPT =
