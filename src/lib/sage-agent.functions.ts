@@ -1,15 +1,19 @@
 import { createServerFn } from "@tanstack/react-start";
 
 type SageRequest = {
-  type: "action" | "insight";
+  type: "action" | "insight" | "parse_rule";
   accountBalance: number;
   rules: string[];
   transactions: unknown[];
   todayDate: string;
+  ruleText: string;
 };
 
 const SYSTEM_PROMPT =
   "You are Sage, a financial agent. You help users manage their money by proposing actions and explaining your reasoning clearly. Always respond with valid JSON only — no intro text, no markdown. Start your response with { and end with }.";
+
+const PARSE_RULE_SYSTEM =
+  "You are Sage, a financial agent. Always respond with valid JSON only. Start with { and end with }.";
 
 const ACTION_PROMPT = `Given the account balance, rules, and transactions provided, propose the most important pending action right now.
 
@@ -34,9 +38,9 @@ Return this exact JSON:
 }`;
 
 function validate(input: unknown): SageRequest {
-  const d = input as Partial<SageRequest>;
-  if (!d || (d.type !== "action" && d.type !== "insight")) {
-    throw new Error("Invalid type: must be 'action' or 'insight'");
+  const d = (input ?? {}) as Partial<SageRequest>;
+  if (d.type !== "action" && d.type !== "insight" && d.type !== "parse_rule") {
+    throw new Error("Invalid type: must be 'action', 'insight', or 'parse_rule'");
   }
   return {
     type: d.type,
@@ -44,13 +48,14 @@ function validate(input: unknown): SageRequest {
     rules: Array.isArray(d.rules) ? d.rules : [],
     transactions: Array.isArray(d.transactions) ? d.transactions : [],
     todayDate: String(d.todayDate ?? ""),
+    ruleText: String(d.ruleText ?? ""),
   };
 }
 
 export const sageAgent = createServerFn({ method: "POST" })
   .inputValidator(validate)
   .handler(async ({ data }) => {
-    console.log("[sage-agent] called", { type: data.type, todayDate: data.todayDate });
+    console.log("[sage-agent] called", { type: data.type });
 
     const apiKey = process.env.ANTHROPIC_API_KEY;
     if (!apiKey) {
@@ -58,13 +63,25 @@ export const sageAgent = createServerFn({ method: "POST" })
       throw new Error("ANTHROPIC_API_KEY is not configured");
     }
 
-    const userPrompt = `${data.type === "action" ? ACTION_PROMPT : INSIGHT_PROMPT}
+    let system = SYSTEM_PROMPT;
+    let userPrompt: string;
+
+    if (data.type === "parse_rule") {
+      system = PARSE_RULE_SYSTEM;
+      userPrompt = `Convert this plain English rule into a clean, structured rule string suitable for a financial agent. Keep it concise, under 15 words, in the format of a conditional statement.
+
+Rule: ${data.ruleText}
+
+Return: { "rule": "structured rule string" }`;
+    } else {
+      userPrompt = `${data.type === "action" ? ACTION_PROMPT : INSIGHT_PROMPT}
 
 Context:
 - Today: ${data.todayDate}
 - Account balance: $${data.accountBalance}
 - Rules: ${JSON.stringify(data.rules)}
 - Transactions: ${JSON.stringify(data.transactions)}`;
+    }
 
     let res: Response;
     try {
@@ -78,7 +95,7 @@ Context:
         body: JSON.stringify({
           model: "claude-sonnet-4-6",
           max_tokens: 512,
-          system: SYSTEM_PROMPT,
+          system,
           messages: [{ role: "user", content: userPrompt }],
         }),
       });
@@ -125,5 +142,6 @@ Context:
       rule_matched: typeof parsed.rule_matched === "string" ? parsed.rule_matched : "",
       observation: typeof parsed.observation === "string" ? parsed.observation : "",
       recommendation: typeof parsed.recommendation === "string" ? parsed.recommendation : "",
+      rule: typeof parsed.rule === "string" ? parsed.rule : "",
     };
   });
