@@ -100,6 +100,41 @@ function Index() {
   const removeRule = (idx: number) =>
     setRules((rs) => rs.filter((_, i) => i !== idx));
 
+  const [askInput, setAskInput] = useState("");
+  const [asking, setAsking] = useState(false);
+  const [advice, setAdvice] = useState<{
+    answer: string;
+    reasoning: string;
+    confidence: number;
+    verdict: string;
+  } | null>(null);
+
+  const askSage = () => {
+    const q = askInput.trim();
+    if (!q || asking) return;
+    setAsking(true);
+    callSage({ data: { type: "advice", question: q } })
+      .then((r) => {
+        setAdvice({
+          answer: r.answer || "",
+          reasoning: r.reasoning || "",
+          confidence: r.confidence || 0,
+          verdict: (r.verdict || "needs more info").toLowerCase(),
+        });
+        setAskInput("");
+      })
+      .catch((e) => {
+        console.error("[Sage] advice FAILED", e);
+        setAdvice({
+          answer: "Sage couldn't reach the model right now.",
+          reasoning: e?.message || "Unknown error",
+          confidence: 0,
+          verdict: "needs more info",
+        });
+      })
+      .finally(() => setAsking(false));
+  };
+
   useEffect(() => {
     const ctx = {
       accountBalance: 2100,
