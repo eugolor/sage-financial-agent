@@ -40,8 +40,8 @@ Return this exact JSON:
 
 function validate(input: unknown): SageRequest {
   const d = (input ?? {}) as Partial<SageRequest>;
-  if (d.type !== "action" && d.type !== "insight" && d.type !== "parse_rule") {
-    throw new Error("Invalid type: must be 'action', 'insight', or 'parse_rule'");
+  if (d.type !== "action" && d.type !== "insight" && d.type !== "parse_rule" && d.type !== "advice") {
+    throw new Error("Invalid type: must be 'action', 'insight', 'parse_rule', or 'advice'");
   }
   return {
     type: d.type,
@@ -50,6 +50,7 @@ function validate(input: unknown): SageRequest {
     transactions: Array.isArray(d.transactions) ? d.transactions : [],
     todayDate: String(d.todayDate ?? ""),
     ruleText: String(d.ruleText ?? ""),
+    question: String(d.question ?? ""),
   };
 }
 
