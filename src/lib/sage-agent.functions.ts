@@ -1,12 +1,13 @@
 import { createServerFn } from "@tanstack/react-start";
 
 type SageRequest = {
-  type: "action" | "insight" | "parse_rule";
+  type: "action" | "insight" | "parse_rule" | "advice";
   accountBalance: number;
   rules: string[];
   transactions: unknown[];
   todayDate: string;
   ruleText: string;
+  question: string;
 };
 
 const SYSTEM_PROMPT =
@@ -39,8 +40,8 @@ Return this exact JSON:
 
 function validate(input: unknown): SageRequest {
   const d = (input ?? {}) as Partial<SageRequest>;
-  if (d.type !== "action" && d.type !== "insight" && d.type !== "parse_rule") {
-    throw new Error("Invalid type: must be 'action', 'insight', or 'parse_rule'");
+  if (d.type !== "action" && d.type !== "insight" && d.type !== "parse_rule" && d.type !== "advice") {
+    throw new Error("Invalid type: must be 'action', 'insight', 'parse_rule', or 'advice'");
   }
   return {
     type: d.type,
@@ -49,6 +50,7 @@ function validate(input: unknown): SageRequest {
     transactions: Array.isArray(d.transactions) ? d.transactions : [],
     todayDate: String(d.todayDate ?? ""),
     ruleText: String(d.ruleText ?? ""),
+    question: String(d.question ?? ""),
   };
 }
 
@@ -73,6 +75,22 @@ export const sageAgent = createServerFn({ method: "POST" })
 Rule: ${data.ruleText}
 
 Return: { "rule": "structured rule string" }`;
+    } else if (data.type === "advice") {
+      system = PARSE_RULE_SYSTEM;
+      userPrompt = `The user is asking for financial advice based on their current situation.
+Account balance: $2,100
+Recent spending this month: $340 dining, $82 groceries, $54 food delivery, $14.99 CloudSync subscription
+Upcoming: rent $1,500 due June 1st
+
+Their question: ${data.question}
+
+Return this exact JSON:
+{
+  "answer": "direct answer in 1-2 sentences",
+  "reasoning": "why, based on their actual numbers, 1-2 sentences",
+  "confidence": 0-100,
+  "verdict": "go ahead | hold off | needs more info"
+}`;
     } else {
       userPrompt = `${data.type === "action" ? ACTION_PROMPT : INSIGHT_PROMPT}
 
@@ -143,5 +161,7 @@ Context:
       observation: typeof parsed.observation === "string" ? parsed.observation : "",
       recommendation: typeof parsed.recommendation === "string" ? parsed.recommendation : "",
       rule: typeof parsed.rule === "string" ? parsed.rule : "",
+      answer: typeof parsed.answer === "string" ? parsed.answer : "",
+      verdict: typeof parsed.verdict === "string" ? parsed.verdict : "",
     };
   });
