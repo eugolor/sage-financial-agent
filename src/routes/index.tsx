@@ -69,17 +69,42 @@ function Index() {
   const [editNote, setEditNote] = useState<string>("");
   const [loadingInsight, setLoadingInsight] = useState(true);
   const [loadingAction, setLoadingAction] = useState(true);
+  const [rules, setRules] = useState<string[]>([
+    "Pay rent of $1,500 on the 1st if balance > $2,000",
+    "Move 10% of paycheck to savings on payday + 2",
+    "Flag any transaction over $500 for review",
+  ]);
+  const [ruleInput, setRuleInput] = useState("");
+  const [addingRule, setAddingRule] = useState(false);
 
   const callSage = useServerFn(sageAgent);
+
+  const addRule = () => {
+    const text = ruleInput.trim();
+    if (!text || addingRule) return;
+    setAddingRule(true);
+    callSage({ data: { type: "parse_rule", ruleText: text } })
+      .then((r) => {
+        const structured = r.rule?.trim() || text;
+        setRules((rs) => [...rs, structured]);
+        setRuleInput("");
+      })
+      .catch((e) => {
+        console.error("[Sage] parse_rule FAILED — adding raw text as fallback", e);
+        setRules((rs) => [...rs, text]);
+        setRuleInput("");
+      })
+      .finally(() => setAddingRule(false));
+  };
+
+  const removeRule = (idx: number) =>
+    setRules((rs) => rs.filter((_, i) => i !== idx));
 
   useEffect(() => {
     const ctx = {
       accountBalance: 2100,
-      rules: [
-        "Pay rent of $1,500 on the 1st if balance > $2,000",
-        "Move 10% of paycheck to savings on payday + 2",
-        "Pay full statement balance if buffer ≥ $500",
-      ],
+      rules,
+
       transactions: [
         { date: "2026-05-28", merchant: "Whole Foods", amount: -82 },
         { date: "2026-05-27", merchant: "Payday Deposit", amount: 2400 },
@@ -272,9 +297,62 @@ function Index() {
           )}
         </Section>
 
-        {/* Pending actions */}
+        {/* Rules */}
         <Section
           eyebrow="02"
+          title="My Rules"
+          description="Plain-English rules Sage uses to decide which actions to propose."
+        >
+          <div className="rounded-xl border border-border bg-card p-5 shadow-sm sm:p-6">
+            {rules.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No active rules yet. Add one below.</p>
+            ) : (
+              <ul className="divide-y divide-border">
+                {rules.map((r, idx) => (
+                  <li key={`${idx}-${r}`} className="flex items-center justify-between gap-3 py-3 first:pt-0 last:pb-0">
+                    <span className="text-sm text-foreground">{r}</span>
+                    <button
+                      onClick={() => removeRule(idx)}
+                      aria-label="Delete rule"
+                      className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-border bg-secondary text-muted-foreground transition hover:bg-accent hover:text-foreground"
+                    >
+                      ×
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <div className="mt-5 flex flex-col gap-2 border-t border-border pt-4 sm:flex-row">
+              <input
+                type="text"
+                value={ruleInput}
+                onChange={(e) => setRuleInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    addRule();
+                  }
+                }}
+                placeholder="Describe a rule in plain English e.g. 'Alert me if I spend more than $200 on food in a week'"
+                className="flex-1 rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+              />
+              <button
+                onClick={addRule}
+                disabled={addingRule || !ruleInput.trim()}
+                className="inline-flex h-9 items-center justify-center gap-2 rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {addingRule && (
+                  <span className="inline-block h-3.5 w-3.5 animate-spin rounded-full border-2 border-primary-foreground/40 border-t-primary-foreground" />
+                )}
+                Add Rule
+              </button>
+            </div>
+          </div>
+        </Section>
+
+        {/* Pending actions */}
+        <Section
+          eyebrow="03"
           title="Pending actions"
           description="Each action shows the rule that triggered it, Sage's reasoning, and a confidence score."
         >
@@ -404,7 +482,7 @@ function Index() {
 
         {/* Audit log */}
         <Section
-          eyebrow="03"
+          eyebrow="04"
           title="Audit log"
           description="Every decision Sage proposed and how it was resolved."
         >
