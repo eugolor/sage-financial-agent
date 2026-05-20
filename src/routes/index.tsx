@@ -67,6 +67,63 @@ function Index() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editAmount, setEditAmount] = useState<string>("");
   const [editNote, setEditNote] = useState<string>("");
+  const [loadingInsight, setLoadingInsight] = useState(true);
+  const [loadingAction, setLoadingAction] = useState(true);
+
+  const callSage = useServerFn(sageAgent);
+
+  useEffect(() => {
+    const ctx = {
+      accountBalance: 2100,
+      rules: [
+        "Pay rent of $1,500 on the 1st if balance > $2,000",
+        "Move 10% of paycheck to savings on payday + 2",
+        "Pay full statement balance if buffer ≥ $500",
+      ],
+      transactions: [
+        { date: "2026-05-28", merchant: "Whole Foods", amount: -82 },
+        { date: "2026-05-27", merchant: "Payday Deposit", amount: 2400 },
+        { date: "2026-05-25", merchant: "CloudSync", amount: -14.99 },
+        { date: "2026-05-22", merchant: "Uber Eats", amount: -54 },
+        { date: "2026-05-20", merchant: "ConEd", amount: -85 },
+      ],
+      todayDate: new Date().toISOString().slice(0, 10),
+    };
+
+    callSage({ data: { type: "action", ...ctx } })
+      .then((r) => {
+        if (!r.action) return;
+        setPending((p) => [
+          {
+            id: `live-p-${Date.now()}`,
+            action: r.action,
+            risk: (r.risk_level as "low" | "medium" | "high") || "medium",
+            confidence: r.confidence || 0,
+            reasoning: r.reasoning,
+            rule: r.rule_matched,
+          },
+          ...p,
+        ]);
+      })
+      .catch((e) => console.error("Sage action error:", e))
+      .finally(() => setLoadingAction(false));
+
+    callSage({ data: { type: "insight", ...ctx } })
+      .then((r) => {
+        if (!r.observation) return;
+        setInsights((xs) => [
+          {
+            id: `live-i-${Date.now()}`,
+            observation: r.observation,
+            recommendation: r.recommendation,
+            confidence: r.confidence || 0,
+          },
+          ...xs,
+        ]);
+      })
+      .catch((e) => console.error("Sage insight error:", e))
+      .finally(() => setLoadingInsight(false));
+  }, [callSage]);
 
   const totalDecisions = useMemo(() => audit.length, [audit]);
 
