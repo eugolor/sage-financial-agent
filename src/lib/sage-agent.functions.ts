@@ -85,7 +85,7 @@ Context:
     const text =
       payload.content?.find((c) => c.type === "text")?.text?.trim() ?? "";
 
-    let parsed: unknown;
+    let parsed: Record<string, string | number> = {};
     try {
       parsed = JSON.parse(text);
     } catch {
@@ -93,5 +93,13 @@ Context:
       if (!match) throw new Error("Claude returned non-JSON response");
       parsed = JSON.parse(match[0]);
     }
-    return { result: parsed as Record<string, unknown> };
+    return {
+      action: typeof parsed.action === "string" ? parsed.action : "",
+      confidence: typeof parsed.confidence === "number" ? parsed.confidence : 0,
+      risk_level: typeof parsed.risk_level === "string" ? parsed.risk_level : "",
+      reasoning: typeof parsed.reasoning === "string" ? parsed.reasoning : "",
+      rule_matched: typeof parsed.rule_matched === "string" ? parsed.rule_matched : "",
+      observation: typeof parsed.observation === "string" ? parsed.observation : "",
+      recommendation: typeof parsed.recommendation === "string" ? parsed.recommendation : "",
+    };
   });
