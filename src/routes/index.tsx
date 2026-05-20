@@ -103,11 +103,8 @@ function Index() {
   useEffect(() => {
     const ctx = {
       accountBalance: 2100,
-      rules: [
-        "Pay rent of $1,500 on the 1st if balance > $2,000",
-        "Move 10% of paycheck to savings on payday + 2",
-        "Pay full statement balance if buffer ≥ $500",
-      ],
+      rules,
+
       transactions: [
         { date: "2026-05-28", merchant: "Whole Foods", amount: -82 },
         { date: "2026-05-27", merchant: "Payday Deposit", amount: 2400 },
