@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { sageAgent } from "@/lib/sage-agent.functions";
-import { initialInsights, initialPending, initialAudit } from "@/mockData";
+import { initialInsights, initialPending, initialAudit, initialTransactions } from "@/mockData";
 
 export const Route = createFileRoute("/")({
   head: () => ({
