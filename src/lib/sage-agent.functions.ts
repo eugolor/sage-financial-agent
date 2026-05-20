@@ -85,11 +85,13 @@ Context:
     const text =
       payload.content?.find((c) => c.type === "text")?.text?.trim() ?? "";
 
+    let parsed: unknown;
     try {
-      return JSON.parse(text) as Record<string, unknown>;
+      parsed = JSON.parse(text);
     } catch {
       const match = text.match(/\{[\s\S]*\}/);
-      if (match) return JSON.parse(match[0]) as Record<string, unknown>;
-      throw new Error("Claude returned non-JSON response");
+      if (!match) throw new Error("Claude returned non-JSON response");
+      parsed = JSON.parse(match[0]);
     }
+    return { result: parsed as Record<string, unknown> };
   });
