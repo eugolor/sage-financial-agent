@@ -92,7 +92,10 @@ function Index() {
 
     callSage({ data: { type: "action", ...ctx } })
       .then((r) => {
-        if (!r.action) return;
+        if (!r.action) {
+          console.warn("[Sage] action call returned empty payload, keeping mock data", r);
+          return;
+        }
         setPending((p) => [
           {
             id: `live-p-${Date.now()}`,
@@ -105,12 +108,22 @@ function Index() {
           ...p,
         ]);
       })
-      .catch((e) => console.error("Sage action error:", e))
+      .catch((e) => {
+        console.error("[Sage] action call FAILED — falling back to mock data", {
+          message: e?.message ?? String(e),
+          status: e?.status,
+          cause: e?.cause,
+          error: e,
+        });
+      })
       .finally(() => setLoadingAction(false));
 
     callSage({ data: { type: "insight", ...ctx } })
       .then((r) => {
-        if (!r.observation) return;
+        if (!r.observation) {
+          console.warn("[Sage] insight call returned empty payload, keeping mock data", r);
+          return;
+        }
         setInsights((xs) => [
           {
             id: `live-i-${Date.now()}`,
@@ -121,7 +134,14 @@ function Index() {
           ...xs,
         ]);
       })
-      .catch((e) => console.error("Sage insight error:", e))
+      .catch((e) => {
+        console.error("[Sage] insight call FAILED — falling back to mock data", {
+          message: e?.message ?? String(e),
+          status: e?.status,
+          cause: e?.cause,
+          error: e,
+        });
+      })
       .finally(() => setLoadingInsight(false));
   }, [callSage]);
 
