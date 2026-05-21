@@ -19,7 +19,7 @@ export const Route = createFileRoute("/")({
 });
 
 type Risk = "low" | "medium" | "high";
-type Decision = "Approved" | "Rejected" | "Edited";
+type Decision = "Approved" | "Rejected" | "Edited" | "Auto-approved";
 
 const riskStyles: Record<Risk, string> = {
   low: "bg-success-soft text-success",
@@ -31,7 +31,28 @@ const decisionStyles: Record<Decision, string> = {
   Approved: "bg-success-soft text-success",
   Rejected: "bg-danger-soft text-danger",
   Edited: "bg-info-soft text-info",
+  "Auto-approved": "bg-success-soft text-success",
 };
+
+const TRUST_STOPS = [
+  {
+    value: 100,
+    label: "Always ask me",
+    description: "Sage will always wait for your approval before acting.",
+  },
+  {
+    value: 90,
+    label: "Auto-approve if 90%+ confident",
+    description:
+      "Sage will act automatically on high-confidence, low-risk actions. You'll still approve anything medium or high risk.",
+  },
+  {
+    value: 75,
+    label: "Auto-approve if 75%+ confident",
+    description:
+      "Sage will handle most routine actions automatically. You'll only see flagged or unusual items.",
+  },
+];
 
 function ConfidenceBadge({ value }: { value: number }) {
   return (
