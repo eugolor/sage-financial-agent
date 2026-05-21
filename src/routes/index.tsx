@@ -326,7 +326,65 @@ function Index() {
     cancelEdit();
   };
 
-  const applyInsight = (id: string) => setInsights((xs) => xs.filter((i) => i.id !== id));
+  const [appliedInsightIds, setAppliedInsightIds] = useState<Set<string>>(new Set());
+  const [flashPendingId, setFlashPendingId] = useState<string | null>(null);
+  const pendingRefs = useRef<Record<string, HTMLElement | null>>({});
+
+  const extractAmount = (s: string): number | null => {
+    const m = s.match(/\$\s?([0-9]{1,3}(?:,[0-9]{3})*(?:\.[0-9]+)?|[0-9]+(?:\.[0-9]+)?)/);
+    return m ? parseFloat(m[1].replace(/,/g, "")) : null;
+  };
+  const keyWords = (s: string) =>
+    new Set(
+      s
+        .toLowerCase()
+        .replace(/[^a-z0-9 ]/g, " ")
+        .split(/\s+/)
+        .filter((w) => w.length > 3),
+    );
+  const findDuplicatePending = (rec: string) => {
+    const amt = extractAmount(rec);
+    const words = keyWords(rec);
+    return pending.find((p) => {
+      const pAmt = extractAmount(p.action);
+      if (amt != null && pAmt != null && Math.abs(amt - pAmt) < 0.01) return true;
+      const pw = keyWords(p.action);
+      let overlap = 0;
+      for (const w of words) if (pw.has(w)) overlap++;
+      return overlap >= 2;
+    });
+  };
+
+  const applyInsight = (i: Insight) => {
+    const dup = findDuplicatePending(i.recommendation);
+    if (dup) {
+      setAppliedInsightIds((s) => new Set(s).add(i.id));
+      setFlashPendingId(dup.id);
+      setTimeout(() => setFlashPendingId((cur) => (cur === dup.id ? null : cur)), 1000);
+      setTimeout(() => {
+        pendingRefs.current[dup.id]?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 50);
+      toast("This action is already pending your review");
+      return;
+    }
+    const newId = `p-ins-${Date.now()}`;
+    setPending((p) => [
+      ...p,
+      {
+        id: newId,
+        action: i.recommendation,
+        risk: "low",
+        confidence: i.confidence,
+        reasoning: "User applied this insight from their spending analysis",
+        rule: "User-initiated from insight",
+      },
+    ]);
+    setInsights((xs) => xs.filter((x) => x.id !== i.id));
+    toast("Added to Pending Actions for your review");
+    setTimeout(() => {
+      pendingRefs.current[newId]?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 80);
+  };
 
   return (
     <div className="min-h-screen bg-background">
