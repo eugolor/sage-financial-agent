@@ -244,6 +244,41 @@ function Index() {
     ]);
   };
 
+  useEffect(() => {
+    pending.forEach((p) => {
+      if (
+        p.risk === "low" &&
+        p.confidence >= threshold &&
+        !autoApprovingIds.has(p.id)
+      ) {
+        setAutoApprovingIds((prev) => {
+          const next = new Set(prev);
+          next.add(p.id);
+          return next;
+        });
+        setTimeout(() => {
+          setPending((cur) => cur.filter((c) => c.id !== p.id));
+          setAudit((a) => [
+            {
+              id: `a-${Date.now()}-${p.id}`,
+              date: now(),
+              action: p.action,
+              decision: "Auto-approved",
+              confidence: p.confidence,
+              summary: `Auto-approved by Sage at ${threshold}% threshold. ${p.reasoning}`,
+            },
+            ...a,
+          ]);
+          setAutoApprovingIds((prev) => {
+            const next = new Set(prev);
+            next.delete(p.id);
+            return next;
+          });
+        }, 1600);
+      }
+    });
+  }, [pending, threshold, autoApprovingIds]);
+
   const resolve = (id: string, decision: Decision) => {
     const card = pending.find((p) => p.id === id);
     if (!card) return;
