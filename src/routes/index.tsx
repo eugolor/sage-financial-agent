@@ -347,6 +347,15 @@ function Index() {
         </div>
       </header>
 
+      <div
+        className="border-b border-[#fde68a] text-center text-muted-foreground"
+        style={{ backgroundColor: "#fffbeb", fontSize: "12px" }}
+      >
+        <div className="mx-auto max-w-5xl px-5 py-2 sm:px-8">
+          Demo mode · All data is simulated and does not represent real financial information · No real transactions are processed
+        </div>
+      </div>
+
       <main className="mx-auto max-w-5xl space-y-10 px-5 py-8 sm:px-8 sm:py-12">
         {/* Insights */}
         <Section
