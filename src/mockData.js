@@ -18,21 +18,12 @@ export const initialPending = [
     rule: "Pay rent if balance > $2,000",
   },
   {
-    id: "p2",
-    action: "TRANSFER $240 to savings",
-    risk: "medium",
-    confidence: 84,
-    reasoning:
-      "Payday was May 27 — 10% savings transfer of $240 is due tomorrow per your rule.",
-    rule: "Move 10% of paycheck to savings on payday + 2",
-  },
-  {
     id: "p3",
     action: "PAY $1,240 to Visa ending 4421",
     risk: "high",
     confidence: 71,
     reasoning:
-      "Statement balance is high relative to checking. Payment would leave $380 buffer — below your $500 minimum.",
+      "Statement balance is high relative to checking. Payment would leave $380 buffer, below your $500 minimum.",
     rule: "Pay full statement balance if buffer ≥ $500",
   },
 ];
@@ -72,7 +63,7 @@ export const initialTransactions = [
   { date: "2026-05-29", merchant: "Loblaws", amount: -87.62 },
   { date: "2026-05-28", merchant: "Uber Eats", amount: -32.18 },
   { date: "2026-05-28", merchant: "Tim Hortons", amount: -6.54 },
-  { date: "2026-05-27", merchant: "Payroll Deposit — Acme Corp", amount: 2400.00 },
+  { date: "2026-05-27", merchant: "Payroll Deposit, Acme Corp", amount: 2400.00 },
   { date: "2026-05-26", merchant: "LCBO #217", amount: -38.95 },
   { date: "2026-05-25", merchant: "Interac e-Transfer to Sarah M.", amount: -120.00 },
   { date: "2026-05-24", merchant: "Canadian Tire", amount: -156.78 },
@@ -93,9 +84,9 @@ export const initialTransactions = [
   { date: "2026-05-07", merchant: "Enbridge Gas", amount: -68.42 },
   { date: "2026-05-05", merchant: "Tim Hortons", amount: -7.23 },
   { date: "2026-05-03", merchant: "Toronto Hydro", amount: -94.18 },
-  { date: "2026-05-01", merchant: "Rent — E-Transfer to Landlord", amount: -1500.00 },
+  { date: "2026-05-01", merchant: "Rent: E-Transfer to Landlord", amount: -1500.00 },
   // April
-  { date: "2026-04-28", merchant: "Payroll Deposit — Acme Corp", amount: 2400.00 },
+  { date: "2026-04-28", merchant: "Payroll Deposit, Acme Corp", amount: 2400.00 },
   { date: "2026-04-26", merchant: "Shoppers Drug Mart", amount: -31.55 },
   { date: "2026-04-24", merchant: "Uber Eats", amount: -41.83 },
   { date: "2026-04-22", merchant: "Loblaws", amount: -98.27 },

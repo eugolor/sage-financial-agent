@@ -11,19 +11,21 @@ type SageRequest = {
 };
 
 const SYSTEM_PROMPT =
-  "You are Sage, a financial agent. You help users manage their money by proposing actions and explaining your reasoning clearly. Always respond with valid JSON only — no intro text, no markdown. Start your response with { and end with }.";
+  "You are Sage, a financial agent. You help users manage their money by proposing actions and explaining your reasoning clearly. Always respond with valid JSON only. No intro text, no markdown. Start your response with { and end with }.";
 
 const PARSE_RULE_SYSTEM =
   "You are Sage, a financial agent. Always respond with valid JSON only. Start with { and end with }.";
 
 const ACTION_PROMPT = `Given the account balance, rules, and transactions provided, propose the most important pending action right now.
 
+Keep reasoning to ONE sentence maximum, under 20 words. Be direct and specific.
+
 Return this exact JSON:
 {
   "action": "description of action",
   "confidence": 0-100,
   "risk_level": "low | medium | high",
-  "reasoning": "plain English, max 2 sentences",
+  "reasoning": "plain English, max 1 sentence, under 20 words",
   "rule_matched": "exact rule that triggered this"
 }`;
 
