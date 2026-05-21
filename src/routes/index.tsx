@@ -121,6 +121,10 @@ function Index() {
   const removeRule = (idx: number) =>
     setRules((rs) => rs.filter((_, i) => i !== idx));
 
+  const [stopIdx, setStopIdx] = useState(0);
+  const threshold = TRUST_STOPS[stopIdx].value;
+  const [autoApprovingIds, setAutoApprovingIds] = useState<Set<string>>(new Set());
+
   const [askInput, setAskInput] = useState("");
   const [asking, setAsking] = useState(false);
   const [advice, setAdvice] = useState<{
