@@ -526,11 +526,18 @@ function Index() {
             <div className="space-y-4">
               {pending.map((p) => {
                 const isEditing = editingId === p.id;
+                const isAutoApproving = autoApprovingIds.has(p.id);
                 return (
                   <article
                     key={p.id}
                     className="rounded-xl border border-border bg-card p-5 shadow-sm sm:p-6"
                   >
+                    {isAutoApproving && (
+                      <div className="mb-4 flex items-center gap-2 rounded-lg bg-success-soft px-3 py-2 text-sm font-medium text-success">
+                        <span className="inline-flex h-2 w-2 rounded-full bg-success" />
+                        Auto-approved by Sage · {p.confidence}% confident
+                      </div>
+                    )}
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div className="space-y-2">
                         <div className="flex flex-wrap items-center gap-2">
