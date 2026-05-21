@@ -644,6 +644,7 @@ function Index() {
                         </>
                       )}
                     </div>
+                    )}
                   </article>
                 );
               })}
