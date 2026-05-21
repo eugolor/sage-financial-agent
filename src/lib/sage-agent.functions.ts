@@ -11,7 +11,7 @@ type SageRequest = {
 };
 
 const SYSTEM_PROMPT =
-  "You are Sage, a financial agent. You help users manage their money by proposing actions and explaining your reasoning clearly. Always respond with valid JSON only — no intro text, no markdown. Start your response with { and end with }.";
+  "You are Sage, a financial agent. You help users manage their money by proposing actions and explaining your reasoning clearly. Always respond with valid JSON only. No intro text, no markdown. Start your response with { and end with }.";
 
 const PARSE_RULE_SYSTEM =
   "You are Sage, a financial agent. Always respond with valid JSON only. Start with { and end with }.";

@@ -9,7 +9,7 @@ import type { Insight } from "@/mockData";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Sage — Financial agent with a trust layer" },
+      { title: "Sage: Financial agent with a trust layer" },
       {
         name: "description",
         content:
@@ -113,7 +113,7 @@ function Index() {
         setRuleInput("");
       })
       .catch((e) => {
-        console.error("[Sage] parse_rule FAILED — adding raw text as fallback", e);
+        console.error("[Sage] parse_rule FAILED, adding raw text as fallback", e);
         setRules((rs) => [...rs, text]);
         setRuleInput("");
       })
@@ -190,7 +190,7 @@ function Index() {
         ]);
       })
       .catch((e) => {
-        console.error("[Sage] action call FAILED — falling back to mock data", {
+        console.error("[Sage] action call FAILED, falling back to mock data", {
           message: e?.message ?? String(e),
           status: e?.status,
           cause: e?.cause,
@@ -216,7 +216,7 @@ function Index() {
         ]);
       })
       .catch((e) => {
-        console.error("[Sage] insight call FAILED — falling back to mock data", {
+        console.error("[Sage] insight call FAILED, falling back to mock data", {
           message: e?.message ?? String(e),
           status: e?.status,
           cause: e?.cause,
