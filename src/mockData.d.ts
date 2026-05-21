@@ -17,7 +17,7 @@ declare module "@/mockData" {
     id: string;
     date: string;
     action: string;
-    decision: "Approved" | "Rejected" | "Edited";
+    decision: "Approved" | "Rejected" | "Edited" | "Auto-approved";
     confidence: number;
     summary: string;
   }

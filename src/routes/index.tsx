@@ -19,7 +19,7 @@ export const Route = createFileRoute("/")({
 });
 
 type Risk = "low" | "medium" | "high";
-type Decision = "Approved" | "Rejected" | "Edited";
+type Decision = "Approved" | "Rejected" | "Edited" | "Auto-approved";
 
 const riskStyles: Record<Risk, string> = {
   low: "bg-success-soft text-success",
@@ -31,7 +31,28 @@ const decisionStyles: Record<Decision, string> = {
   Approved: "bg-success-soft text-success",
   Rejected: "bg-danger-soft text-danger",
   Edited: "bg-info-soft text-info",
+  "Auto-approved": "bg-success-soft text-success",
 };
+
+const TRUST_STOPS = [
+  {
+    value: 100,
+    label: "Always ask me",
+    description: "Sage will always wait for your approval before acting.",
+  },
+  {
+    value: 90,
+    label: "Auto-approve if 90%+ confident",
+    description:
+      "Sage will act automatically on high-confidence, low-risk actions. You'll still approve anything medium or high risk.",
+  },
+  {
+    value: 75,
+    label: "Auto-approve if 75%+ confident",
+    description:
+      "Sage will handle most routine actions automatically. You'll only see flagged or unusual items.",
+  },
+];
 
 function ConfidenceBadge({ value }: { value: number }) {
   return (
@@ -99,6 +120,10 @@ function Index() {
 
   const removeRule = (idx: number) =>
     setRules((rs) => rs.filter((_, i) => i !== idx));
+
+  const [stopIdx, setStopIdx] = useState(0);
+  const threshold = TRUST_STOPS[stopIdx].value;
+  const [autoApprovingIds, setAutoApprovingIds] = useState<Set<string>>(new Set());
 
   const [askInput, setAskInput] = useState("");
   const [asking, setAsking] = useState(false);
@@ -218,6 +243,41 @@ function Index() {
       ...a,
     ]);
   };
+
+  useEffect(() => {
+    pending.forEach((p) => {
+      if (
+        p.risk === "low" &&
+        p.confidence >= threshold &&
+        !autoApprovingIds.has(p.id)
+      ) {
+        setAutoApprovingIds((prev) => {
+          const next = new Set(prev);
+          next.add(p.id);
+          return next;
+        });
+        setTimeout(() => {
+          setPending((cur) => cur.filter((c) => c.id !== p.id));
+          setAudit((a) => [
+            {
+              id: `a-${Date.now()}-${p.id}`,
+              date: now(),
+              action: p.action,
+              decision: "Auto-approved",
+              confidence: p.confidence,
+              summary: `Auto-approved by Sage at ${threshold}% threshold. ${p.reasoning}`,
+            },
+            ...a,
+          ]);
+          setAutoApprovingIds((prev) => {
+            const next = new Set(prev);
+            next.delete(p.id);
+            return next;
+          });
+        }, 1600);
+      }
+    });
+  }, [pending, threshold, autoApprovingIds]);
 
   const resolve = (id: string, decision: Decision) => {
     const card = pending.find((p) => p.id === id);
@@ -379,9 +439,83 @@ function Index() {
           </div>
         </Section>
 
-        {/* Pending actions */}
+        {/* Trust Settings */}
         <Section
           eyebrow="03"
+          title="Trust Settings"
+          description="How much should Sage act on its own?"
+        >
+          <div className="rounded-xl border border-border bg-card p-5 shadow-sm sm:p-6">
+            <p className="text-sm text-muted-foreground">How much should Sage act on its own?</p>
+
+            <div className="mt-6">
+              <div className="relative px-2">
+                <div className="relative h-1.5 rounded-full bg-muted">
+                  <div
+                    className="absolute left-0 top-0 h-1.5 rounded-full bg-primary transition-all"
+                    style={{ width: `${(stopIdx / (TRUST_STOPS.length - 1)) * 100}%` }}
+                  />
+                  {TRUST_STOPS.map((_, i) => {
+                    const active = i <= stopIdx;
+                    return (
+                      <button
+                        key={i}
+                        type="button"
+                        onClick={() => setStopIdx(i)}
+                        aria-label={`Set trust level ${TRUST_STOPS[i].label}`}
+                        className={`absolute top-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 transition ${
+                          active
+                            ? "border-primary bg-primary"
+                            : "border-border bg-card"
+                        } ${i === stopIdx ? "ring-4 ring-primary/20" : ""}`}
+                        style={{ left: `${(i / (TRUST_STOPS.length - 1)) * 100}%` }}
+                      />
+                    );
+                  })}
+                </div>
+                <input
+                  type="range"
+                  min={0}
+                  max={TRUST_STOPS.length - 1}
+                  step={1}
+                  value={stopIdx}
+                  onChange={(e) => setStopIdx(Number(e.target.value))}
+                  className="absolute inset-x-0 top-1/2 h-6 w-full -translate-y-1/2 cursor-pointer opacity-0"
+                  aria-label="Trust threshold"
+                />
+              </div>
+
+              <div className="mt-4 grid grid-cols-3 gap-2 text-xs">
+                {TRUST_STOPS.map((s, i) => (
+                  <button
+                    key={s.value}
+                    type="button"
+                    onClick={() => setStopIdx(i)}
+                    className={`text-left transition ${
+                      i === stopIdx ? "text-foreground" : "text-muted-foreground hover:text-foreground"
+                    } ${i === 1 ? "text-center" : ""} ${i === 2 ? "text-right" : ""}`}
+                  >
+                    <span className="font-medium">{s.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="mt-6 rounded-lg bg-muted p-4">
+              <p className="text-sm leading-relaxed text-foreground">
+                {TRUST_STOPS[stopIdx].description}
+              </p>
+            </div>
+
+            <p className="mt-4 text-xs text-muted-foreground">
+              You can change this at any time. All actions are logged regardless of setting.
+            </p>
+          </div>
+        </Section>
+
+        {/* Pending actions */}
+        <Section
+          eyebrow="04"
           title="Pending actions"
           description="Each action shows the rule that triggered it, Sage's reasoning, and a confidence score."
         >
@@ -392,11 +526,18 @@ function Index() {
             <div className="space-y-4">
               {pending.map((p) => {
                 const isEditing = editingId === p.id;
+                const isAutoApproving = autoApprovingIds.has(p.id);
                 return (
                   <article
                     key={p.id}
                     className="rounded-xl border border-border bg-card p-5 shadow-sm sm:p-6"
                   >
+                    {isAutoApproving && (
+                      <div className="mb-4 flex items-center gap-2 rounded-lg bg-success-soft px-3 py-2 text-sm font-medium text-success">
+                        <span className="inline-flex h-2 w-2 rounded-full bg-success" />
+                        Auto-approved by Sage · {p.confidence}% confident
+                      </div>
+                    )}
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div className="space-y-2">
                         <div className="flex flex-wrap items-center gap-2">
@@ -463,6 +604,7 @@ function Index() {
                       </div>
                     )}
 
+                    {!isAutoApproving && (
                     <div className="mt-5 flex flex-wrap gap-2 border-t border-border pt-4">
                       {isEditing ? (
                         <>
@@ -502,6 +644,7 @@ function Index() {
                         </>
                       )}
                     </div>
+                    )}
                   </article>
                 );
               })}
@@ -511,7 +654,7 @@ function Index() {
 
         {/* Audit log */}
         <Section
-          eyebrow="04"
+          eyebrow="05"
           title="Audit log"
           description="Every decision Sage proposed and how it was resolved."
         >
