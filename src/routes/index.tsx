@@ -444,10 +444,11 @@ function Index() {
                     </div>
                   </div>
                   <button
-                    onClick={() => applyInsight(i.id)}
-                    className="mt-4 inline-flex h-9 items-center justify-center rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground transition hover:opacity-90"
+                    onClick={() => applyInsight(i)}
+                    disabled={appliedInsightIds.has(i.id)}
+                    className="mt-4 inline-flex h-9 items-center justify-center rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground transition hover:opacity-90 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground disabled:hover:opacity-100"
                   >
-                    Apply
+                    {appliedInsightIds.has(i.id) ? "Already pending" : "Apply"}
                   </button>
                 </article>
               ))}
