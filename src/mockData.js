@@ -2,7 +2,7 @@ export const initialInsights = [
   {
     id: "i1",
     observation: "You've spent $340 on dining this month, 40% above your 3-month average.",
-    recommendation: "Flag restaurant charges over $50 for review before they post.",
+    recommendation: "Set a $300 monthly dining budget. Sage will alert you when you're close to the limit.",
     confidence: 87,
   },
 ];
@@ -19,11 +19,11 @@ export const initialPending = [
   },
   {
     id: "p2",
-    action: "TRANSFER $400 to savings",
+    action: "TRANSFER $240 to savings",
     risk: "medium",
     confidence: 84,
     reasoning:
-      "Payday deposit detected 2 days ago. Discretionary spending budget for the week is intact.",
+      "Payday was May 27 — 10% savings transfer of $240 is due tomorrow per your rule.",
     rule: "Move 10% of paycheck to savings on payday + 2",
   },
   {
