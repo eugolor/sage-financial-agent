@@ -439,9 +439,83 @@ function Index() {
           </div>
         </Section>
 
-        {/* Pending actions */}
+        {/* Trust Settings */}
         <Section
           eyebrow="03"
+          title="Trust Settings"
+          description="How much should Sage act on its own?"
+        >
+          <div className="rounded-xl border border-border bg-card p-5 shadow-sm sm:p-6">
+            <p className="text-sm text-muted-foreground">How much should Sage act on its own?</p>
+
+            <div className="mt-6">
+              <div className="relative px-2">
+                <div className="relative h-1.5 rounded-full bg-muted">
+                  <div
+                    className="absolute left-0 top-0 h-1.5 rounded-full bg-primary transition-all"
+                    style={{ width: `${(stopIdx / (TRUST_STOPS.length - 1)) * 100}%` }}
+                  />
+                  {TRUST_STOPS.map((_, i) => {
+                    const active = i <= stopIdx;
+                    return (
+                      <button
+                        key={i}
+                        type="button"
+                        onClick={() => setStopIdx(i)}
+                        aria-label={`Set trust level ${TRUST_STOPS[i].label}`}
+                        className={`absolute top-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 transition ${
+                          active
+                            ? "border-primary bg-primary"
+                            : "border-border bg-card"
+                        } ${i === stopIdx ? "ring-4 ring-primary/20" : ""}`}
+                        style={{ left: `${(i / (TRUST_STOPS.length - 1)) * 100}%` }}
+                      />
+                    );
+                  })}
+                </div>
+                <input
+                  type="range"
+                  min={0}
+                  max={TRUST_STOPS.length - 1}
+                  step={1}
+                  value={stopIdx}
+                  onChange={(e) => setStopIdx(Number(e.target.value))}
+                  className="absolute inset-x-0 top-1/2 h-6 w-full -translate-y-1/2 cursor-pointer opacity-0"
+                  aria-label="Trust threshold"
+                />
+              </div>
+
+              <div className="mt-4 grid grid-cols-3 gap-2 text-xs">
+                {TRUST_STOPS.map((s, i) => (
+                  <button
+                    key={s.value}
+                    type="button"
+                    onClick={() => setStopIdx(i)}
+                    className={`text-left transition ${
+                      i === stopIdx ? "text-foreground" : "text-muted-foreground hover:text-foreground"
+                    } ${i === 1 ? "text-center" : ""} ${i === 2 ? "text-right" : ""}`}
+                  >
+                    <span className="font-medium">{s.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="mt-6 rounded-lg bg-muted p-4">
+              <p className="text-sm leading-relaxed text-foreground">
+                {TRUST_STOPS[stopIdx].description}
+              </p>
+            </div>
+
+            <p className="mt-4 text-xs text-muted-foreground">
+              You can change this at any time. All actions are logged regardless of setting.
+            </p>
+          </div>
+        </Section>
+
+        {/* Pending actions */}
+        <Section
+          eyebrow="04"
           title="Pending actions"
           description="Each action shows the rule that triggered it, Sage's reasoning, and a confidence score."
         >
