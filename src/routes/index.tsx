@@ -837,6 +837,7 @@ function Index() {
           </form>
         </div>
       </div>
+      <Toaster position="top-center" />
     </div>
   );
 }
