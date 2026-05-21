@@ -18,15 +18,6 @@ export const initialPending = [
     rule: "Pay rent if balance > $2,000",
   },
   {
-    id: "p2",
-    action: "TRANSFER $240 to savings",
-    risk: "medium",
-    confidence: 84,
-    reasoning:
-      "Payday was May 27 — 10% savings transfer of $240 is due tomorrow per your rule.",
-    rule: "Move 10% of paycheck to savings on payday + 2",
-  },
-  {
     id: "p3",
     action: "PAY $1,240 to Visa ending 4421",
     risk: "high",
