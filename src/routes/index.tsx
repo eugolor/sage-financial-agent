@@ -600,7 +600,14 @@ function Index() {
                 return (
                   <article
                     key={p.id}
-                    className="rounded-xl border border-border bg-card p-5 shadow-sm sm:p-6"
+                    ref={(el) => {
+                      pendingRefs.current[p.id] = el;
+                    }}
+                    className={`rounded-xl border bg-card p-5 shadow-sm transition-all duration-500 sm:p-6 ${
+                      flashPendingId === p.id
+                        ? "border-success ring-2 ring-success"
+                        : "border-border"
+                    }`}
                   >
                     {isAutoApproving && (
                       <div className="mb-4 flex items-center gap-2 rounded-lg bg-success-soft px-3 py-2 text-sm font-medium text-success">
