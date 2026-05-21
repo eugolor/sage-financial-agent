@@ -2,7 +2,7 @@ export const initialInsights = [
   {
     id: "i1",
     observation: "You've spent $340 on dining this month, 40% above your 3-month average.",
-    recommendation: "Flag restaurant charges over $50 for review before they post.",
+    recommendation: "Set a $300 monthly dining budget. Sage will alert you when you're close to the limit.",
     confidence: 87,
   },
 ];
