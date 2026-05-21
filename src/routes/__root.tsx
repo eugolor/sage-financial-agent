@@ -72,14 +72,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
+      { title: "Sage" },
+      { name: "description", content: "Sage Financial Guardian is a web app that acts as a proactive financial agent, offering insights and managing actions." },
       { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { property: "og:title", content: "Sage" },
+      { property: "og:description", content: "Sage Financial Guardian is a web app that acts as a proactive financial agent, offering insights and managing actions." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "Sage" },
+      { name: "twitter:description", content: "Sage Financial Guardian is a web app that acts as a proactive financial agent, offering insights and managing actions." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/734372f4-2cb9-4b42-a963-bd0c2e815605/id-preview-ed42c726--29d623b1-b086-4f7f-99a2-fe1bc396b460.lovable.app-1779402007686.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/734372f4-2cb9-4b42-a963-bd0c2e815605/id-preview-ed42c726--29d623b1-b086-4f7f-99a2-fe1bc396b460.lovable.app-1779402007686.png" },
     ],
     links: [
       {
