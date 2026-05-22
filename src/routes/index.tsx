@@ -560,21 +560,21 @@ function Index() {
                 <div className="relative h-1.5 rounded-full bg-muted">
                   <div
                     className="absolute left-0 top-0 h-1.5 rounded-full bg-primary transition-all"
-                    style={{ width: `${(stopIdx / (TRUST_STOPS.length - 1)) * 100}%` }}
+                    style={{ width: `${(draftStopIdx / (TRUST_STOPS.length - 1)) * 100}%` }}
                   />
                   {TRUST_STOPS.map((_, i) => {
-                    const active = i <= stopIdx;
+                    const active = i <= draftStopIdx;
                     return (
                       <button
                         key={i}
                         type="button"
-                        onClick={() => setStopIdx(i)}
+                        onClick={() => setDraftStopIdx(i)}
                         aria-label={`Set trust level ${TRUST_STOPS[i].label}`}
                         className={`absolute top-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 transition ${
                           active
                             ? "border-primary bg-primary"
                             : "border-border bg-card"
-                        } ${i === stopIdx ? "ring-4 ring-primary/20" : ""}`}
+                        } ${i === draftStopIdx ? "ring-4 ring-primary/20" : ""}`}
                         style={{ left: `${(i / (TRUST_STOPS.length - 1)) * 100}%` }}
                       />
                     );
@@ -585,8 +585,8 @@ function Index() {
                   min={0}
                   max={TRUST_STOPS.length - 1}
                   step={1}
-                  value={stopIdx}
-                  onChange={(e) => setStopIdx(Number(e.target.value))}
+                  value={draftStopIdx}
+                  onChange={(e) => setDraftStopIdx(Number(e.target.value))}
                   className="absolute inset-x-0 top-1/2 h-6 w-full -translate-y-1/2 cursor-pointer opacity-0"
                   aria-label="Trust threshold"
                 />
@@ -597,9 +597,9 @@ function Index() {
                   <button
                     key={s.value}
                     type="button"
-                    onClick={() => setStopIdx(i)}
+                    onClick={() => setDraftStopIdx(i)}
                     className={`text-left transition ${
-                      i === stopIdx ? "text-foreground" : "text-muted-foreground hover:text-foreground"
+                      i === draftStopIdx ? "text-foreground" : "text-muted-foreground hover:text-foreground"
                     } ${i === 1 ? "text-center" : ""} ${i === 2 ? "text-right" : ""}`}
                   >
                     <span className="font-medium">{s.label}</span>
@@ -609,9 +609,42 @@ function Index() {
             </div>
 
             <div className="mt-6 rounded-lg bg-muted p-4">
+              {draftStopIdx !== stopIdx && (
+                <p className="mb-2 text-xs font-medium uppercase tracking-wide text-primary">
+                  Preview, not yet saved
+                </p>
+              )}
               <p className="text-sm leading-relaxed text-foreground">
-                {TRUST_STOPS[stopIdx].description}
+                {TRUST_STOPS[draftStopIdx].description}
               </p>
+              {draftStopIdx !== stopIdx && (
+                <p className="mt-2 text-xs text-muted-foreground">
+                  Current saved setting: <span className="font-medium text-foreground">{TRUST_STOPS[stopIdx].label}</span> ({TRUST_STOPS[stopIdx].value}% threshold)
+                </p>
+              )}
+            </div>
+
+            <div className="mt-4 flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setStopIdx(draftStopIdx);
+                  toast.success("Trust settings saved");
+                }}
+                disabled={draftStopIdx === stopIdx}
+                className="inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Save Settings
+              </button>
+              {draftStopIdx !== stopIdx && (
+                <button
+                  type="button"
+                  onClick={() => setDraftStopIdx(stopIdx)}
+                  className="text-sm text-muted-foreground hover:text-foreground"
+                >
+                  Reset
+                </button>
+              )}
             </div>
 
             <p className="mt-4 text-xs text-muted-foreground">
@@ -619,6 +652,7 @@ function Index() {
             </p>
           </div>
         </Section>
+
 
         {/* Pending actions */}
         <Section
