@@ -29,14 +29,22 @@ Return this exact JSON:
   "rule_matched": "exact rule that triggered this"
 }`;
 
-const INSIGHT_PROMPT = `Given the transaction history provided, identify the single most important spending insight for this user.
+const INSIGHT_PROMPT = `Given the transaction history provided, identify the single most important actionable insight, something Sage can actually execute like setting a budget cap, scheduling a transfer, or flagging a transaction category.
+
+Do NOT suggest lifestyle changes, behavioral tips, or anything that requires the user to manually change their habits (e.g. 'brew coffee at home', 'cook more meals', 'walk instead of Uber').
+
+Only propose things a financial agent can do:
+- Set a spending cap on a category
+- Schedule or recommend a transfer
+- Flag transactions over a threshold
+- Cancel or review a recurring charge
 
 Keep observation to maximum 1 sentence (under 20 words). Keep recommendation to maximum 1 sentence (under 20 words). Be specific but extremely concise.
 
 Return this exact JSON:
 {
   "observation": "what you noticed",
-  "recommendation": "specific action to take",
+  "recommendation": "specific action Sage can take",
   "confidence": 0-100
 }`;
 
