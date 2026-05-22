@@ -328,6 +328,16 @@ function Index() {
 
   const [appliedInsightIds, setAppliedInsightIds] = useState<Set<string>>(new Set());
   const [flashPendingId, setFlashPendingId] = useState<string | null>(null);
+  const [observations, setObservations] = useState<{ id: string; text: string }[]>([
+    {
+      id: "obs-1",
+      text: "Your dining spend peaks on Friday and Saturday nights. Consider whether weekend plans align with your $300 monthly dining goal.",
+    },
+    {
+      id: "obs-2",
+      text: "Your grocery spend at Loblaws is consistent week to week. No action needed, this is a stable, predictable expense.",
+    },
+  ]);
   const pendingRefs = useRef<Record<string, HTMLElement | null>>({});
 
   const extractAmount = (s: string): number | null => {
@@ -455,6 +465,32 @@ function Index() {
             </div>
           )}
         </Section>
+
+        {/* Observations */}
+        <Section
+          eyebrow="01b"
+          title="Observations"
+          description="Things Sage noticed but can't act on directly."
+        >
+          <div className="grid gap-3 sm:grid-cols-2">
+            {observations.map((o) => (
+              <article
+                key={o.id}
+                className="flex items-start justify-between gap-3 rounded-lg border border-border/60 bg-muted/40 p-4"
+              >
+                <p className="text-xs leading-relaxed text-muted-foreground">{o.text}</p>
+                <button
+                  onClick={() => setObservations((prev) => prev.filter((x) => x.id !== o.id))}
+                  aria-label="Dismiss observation"
+                  className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-muted-foreground transition hover:bg-accent hover:text-foreground"
+                >
+                  ×
+                </button>
+              </article>
+            ))}
+          </div>
+        </Section>
+
 
         {/* Rules */}
         <Section
