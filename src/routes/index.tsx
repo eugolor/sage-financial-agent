@@ -328,6 +328,16 @@ function Index() {
 
   const [appliedInsightIds, setAppliedInsightIds] = useState<Set<string>>(new Set());
   const [flashPendingId, setFlashPendingId] = useState<string | null>(null);
+  const [observations, setObservations] = useState<{ id: string; text: string }[]>([
+    {
+      id: "obs-1",
+      text: "Your dining spend peaks on Friday and Saturday nights. Consider whether weekend plans align with your $300 monthly dining goal.",
+    },
+    {
+      id: "obs-2",
+      text: "Your grocery spend at Loblaws is consistent week to week. No action needed, this is a stable, predictable expense.",
+    },
+  ]);
   const pendingRefs = useRef<Record<string, HTMLElement | null>>({});
 
   const extractAmount = (s: string): number | null => {
