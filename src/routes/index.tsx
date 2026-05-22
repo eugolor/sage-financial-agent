@@ -124,6 +124,7 @@ function Index() {
     setRules((rs) => rs.filter((_, i) => i !== idx));
 
   const [stopIdx, setStopIdx] = useState(0);
+  const [draftStopIdx, setDraftStopIdx] = useState(0);
   const threshold = TRUST_STOPS[stopIdx].value;
   const [autoApprovingIds, setAutoApprovingIds] = useState<Set<string>>(new Set());
 
