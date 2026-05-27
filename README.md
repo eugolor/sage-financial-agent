@@ -1,4 +1,4 @@
-# Sage — Financial Agent with Trust Layer
+# Sage: Financial Agent with Trust Layer
 
 A financial agent that proposes actions, explains its reasoning, 
 and waits for your approval before doing anything.
@@ -6,7 +6,7 @@ and waits for your approval before doing anything.
 Built for Builder Sprint Toronto · May 2026
 
 ## Live Demo
-https://sage-agent-trust.lovable.app
+https://sage-financial-agent.lovable.app
 
 ## Stack
 - React (Lovable)
